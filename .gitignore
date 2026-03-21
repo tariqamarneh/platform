@@ -1,0 +1,32 @@
+# === IDE ===
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# === Java / Gradle ===
+.gradle/
+build/
+.kotlin/
+!gradle/wrapper/gradle-wrapper.jar
+
+# === Python ===
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+
+# === Node.js / Next.js ===
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+
+# === Env files ===
+.env*
+
+# === Logs ===
+*.log
+npm-debug.log*
+yarn-debug.log*
