@@ -61,16 +61,18 @@ export function Hero() {
           transition={{ duration: 0.6 }}
           className="mb-8"
         >
-          <span
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-muted backdrop-blur-sm"
-            style={{
-              backgroundImage: 'linear-gradient(90deg, transparent, rgba(59,130,246,0.15), rgba(124,58,237,0.15), transparent)',
-              backgroundSize: '200% 100%',
-              animation: 'shimmer 3s linear infinite',
-            }}
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-            Now in Beta
+          <span className="relative inline-flex items-center gap-2 overflow-hidden rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-medium text-muted backdrop-blur-sm">
+            <span
+              className="pointer-events-none absolute inset-0 rounded-full"
+              style={{
+                backgroundImage: 'linear-gradient(90deg, transparent 30%, rgba(59,130,246,0.15), rgba(124,58,237,0.15), transparent 70%)',
+                backgroundSize: '200% 100%',
+                animation: 'shimmer 3s linear infinite',
+              }}
+              aria-hidden="true"
+            />
+            <span className="relative h-1.5 w-1.5 rounded-full bg-blue-400" />
+            <span className="relative">Now in Beta</span>
           </span>
         </motion.div>
 
