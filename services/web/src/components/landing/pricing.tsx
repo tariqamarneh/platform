@@ -65,6 +65,9 @@ export function Pricing() {
           transition={{ duration: 0.5 }}
           className="mb-16"
         >
+          <span className="mb-4 inline-block text-xs font-medium uppercase tracking-widest text-blue-400">
+            Pricing
+          </span>
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl lg:text-5xl">
             Simple{' '}
             <span className="bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
@@ -77,29 +80,32 @@ export function Pricing() {
 
           {/* Billing toggle */}
           <div className="mt-8 flex items-center gap-3">
-            <span className={`text-sm ${!annual ? 'text-foreground' : 'text-muted'}`}>
+            <span className={`text-sm transition-colors duration-300 ${!annual ? 'text-foreground' : 'text-muted'}`}>
               Monthly
             </span>
             <button
               onClick={() => setAnnual(!annual)}
-              className={`relative h-6 w-11 rounded-full transition-colors duration-200 ${
+              className={`relative h-7 w-12 rounded-full transition-colors duration-300 ${
                 annual ? 'bg-blue-500' : 'bg-white/10'
               }`}
             >
-              <div
-                className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform duration-200 ${
-                  annual ? 'translate-x-[22px]' : 'translate-x-0.5'
-                }`}
+              <motion.div
+                className="absolute top-0.5 h-6 w-6 rounded-full bg-white shadow-sm"
+                animate={{ x: annual ? 22 : 2 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
               />
             </button>
-            <span className={`text-sm ${annual ? 'text-foreground' : 'text-muted'}`}>
+            <span className={`text-sm transition-colors duration-300 ${annual ? 'text-foreground' : 'text-muted'}`}>
               Annual
             </span>
-            {annual && (
-              <span className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400">
-                Save 20%
-              </span>
-            )}
+            <motion.span
+              initial={false}
+              animate={{ opacity: annual ? 1 : 0, scale: annual ? 1 : 0.8 }}
+              transition={{ duration: 0.2 }}
+              className="rounded-full bg-green-500/10 px-2.5 py-0.5 text-xs font-medium text-green-400"
+            >
+              Save 20%
+            </motion.span>
           </div>
         </motion.div>
 
@@ -117,20 +123,36 @@ export function Pricing() {
               }`}
             >
               {plan.highlighted && (
-                <span className="absolute -top-3 right-6 rounded-full bg-gradient-to-r from-blue-500 to-violet-500 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                  Popular
+                <span className="absolute -top-3.5 right-6 z-10 overflow-hidden rounded-full bg-gradient-to-r from-blue-500 to-violet-500 px-4 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+                  Most Popular
+                  {/* Shimmer overlay */}
+                  <span
+                    className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_ease-in-out_infinite]"
+                    style={{
+                      background:
+                        'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
+                    }}
+                  />
                 </span>
               )}
 
               <h3 className="text-lg font-semibold">{plan.name}</h3>
               <p className="mt-1 text-xs text-muted">{plan.description}</p>
 
-              <div className="mt-6 flex items-baseline gap-1">
+              <motion.div
+                className="mt-6 flex items-baseline gap-1"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.4, delay: 0.3 + i * 0.15 }}
+              >
                 <span className="text-4xl font-bold tracking-tight">
                   {annual ? plan.annualPrice : plan.monthlyPrice}
                 </span>
                 <span className="text-sm text-muted">/mo</span>
-              </div>
+              </motion.div>
+              {plan.highlighted && (
+                <p className="mt-1 text-xs text-muted/60">per seat</p>
+              )}
 
               <ul className="mt-8 space-y-3">
                 {plan.features.map((feature) => (
@@ -147,7 +169,7 @@ export function Pricing() {
                 href={plan.href}
                 className={`mt-8 block w-full rounded-xl py-3 text-center text-sm font-semibold transition-all duration-200 ${
                   plan.highlighted
-                    ? 'bg-white text-[#030712] hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(59,130,246,0.2)]'
+                    ? 'bg-white text-[#030712] shadow-[0_0_20px_rgba(59,130,246,0.15)] hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(59,130,246,0.3)]'
                     : 'border border-white/10 text-foreground hover:bg-white/5'
                 }`}
               >
@@ -157,6 +179,14 @@ export function Pricing() {
           ))}
         </div>
       </div>
+
+      {/* Shimmer keyframes injected via style tag */}
+      <style>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+      `}</style>
     </section>
   );
 }

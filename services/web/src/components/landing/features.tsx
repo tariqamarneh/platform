@@ -62,6 +62,15 @@ const features = [
   },
 ];
 
+function PulsingDot() {
+  return (
+    <span className="absolute right-4 top-4 flex h-2.5 w-2.5">
+      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-40" />
+      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
+    </span>
+  );
+}
+
 function BentoCard({
   feature,
   index,
@@ -72,13 +81,8 @@ function BentoCard({
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-60px' });
 
-  const gradients: Record<string, string> = {
-    0: 'from-blue-500/10 to-transparent',
-    1: '',
-    2: '',
-    3: 'from-violet-500/10 to-transparent',
-    4: 'from-blue-500/5 via-violet-500/5 to-transparent',
-  };
+  const isBig = feature.size === 'big';
+  const isFull = feature.size === 'full';
 
   return (
     <motion.div
@@ -86,20 +90,44 @@ function BentoCard({
       initial={{ opacity: 0, y: 30 }}
       animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
       transition={{ duration: 0.6, delay: index * 0.1, ease: 'easeOut' }}
-      className={`bento-card p-8 backdrop-blur-sm ${
-        feature.size === 'big'
+      className={`bento-card group relative overflow-hidden p-8 backdrop-blur-sm ${
+        isBig
           ? 'sm:col-span-2'
-          : feature.size === 'full'
+          : isFull
             ? 'sm:col-span-3'
             : 'sm:col-span-1'
-      } ${gradients[index] ? `bg-gradient-to-br ${gradients[index]}` : ''}`}
+      } ${isFull ? 'bg-gradient-to-r from-blue-500/[0.06] via-violet-500/[0.04] to-transparent' : ''}`}
     >
+      {/* Top highlight line */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px"
+        style={{
+          background:
+            'linear-gradient(90deg, transparent 10%, #3b82f6 30%, #7c3aed 70%, transparent 90%)',
+          opacity: 0.4,
+        }}
+      />
+
       <div className="bento-glow" />
+
+      {/* Pulsing dot on big cards */}
+      {isBig && <PulsingDot />}
+
       <div className="relative z-10">
-        <div className="mb-5 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-white/5 text-blue-400">
-          {feature.icon}
+        {/* Icon with glow */}
+        <div className="relative mb-5 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/5 text-blue-400">
+          <div
+            className="pointer-events-none absolute inset-0 rounded-xl opacity-50"
+            style={{
+              background: 'radial-gradient(circle at center, rgba(59,130,246,0.15) 0%, transparent 70%)',
+            }}
+          />
+          <span className="relative z-10">{feature.icon}</span>
         </div>
-        <h3 className="text-lg font-semibold tracking-tight">{feature.title}</h3>
+
+        <h3 className="text-xl font-semibold tracking-tight transition-colors duration-300 group-hover:text-blue-300">
+          {feature.title}
+        </h3>
         <p className="mt-2 max-w-md text-sm leading-relaxed text-muted">
           {feature.description}
         </p>
@@ -122,6 +150,9 @@ export function Features() {
           transition={{ duration: 0.5 }}
           className="mb-16"
         >
+          <span className="mb-4 inline-block text-xs font-medium uppercase tracking-widest text-blue-400">
+            Capabilities
+          </span>
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl lg:text-5xl">
             Not another
             <br />
@@ -131,7 +162,6 @@ export function Features() {
           </h2>
         </motion.div>
 
-        {/* Bento grid: row 1 = big + small, row 2 = small + big, row 3 = full */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           {features.map((feature, i) => (
             <BentoCard key={feature.title} feature={feature} index={i} />
