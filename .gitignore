@@ -25,6 +25,7 @@ out/
 
 # === Env files ===
 .env*
+!.env.example
 
 # === Logs ===
 *.log

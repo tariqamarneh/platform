@@ -1,0 +1,66 @@
+server:
+  port: ${PORT:8080}
+
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/auth}
+    username: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000
+      cache-null-values: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui
+    operations-sorter: method
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-me-in-production-this-must-be-at-least-256-bits-long-for-hmac-sha}
+    access-token-expiry: 15m
+    refresh-token-expiry: 7d
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
