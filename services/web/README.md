@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Web Service
 
-## Getting Started
+Frontend web application for the Business Agent platform. Built with Next.js 16, React 19, and Tailwind CSS.
 
-First, run the development server:
+## Features
+
+- **Landing Page** — Modern dark-themed page with animated hero, features grid, pricing, and CTAs
+- **Authentication** — Login and register forms with server-side JWT handling via HTTP-only cookies
+- **Route Protection** — Next.js 16 proxy protects dashboard routes, redirects unauthenticated users
+- **Responsive** — Mobile-first design with glass morphism and gradient accents
+
+## Tech Stack
+
+| | |
+|---|---|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| UI | React 19, Tailwind CSS 4 |
+| Animations | Framer Motion |
+| Auth | Custom JWT via HTTP-only cookies (no NextAuth) |
+| Build | Standalone output for Docker |
+
+## Quick Start
 
 ```bash
+# With Docker Compose (from platform root)
+docker compose up --build
+
+# Or locally
+cd services/web
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app runs on **http://localhost:3000**. Requires auth-service running on port 8080.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Default | Description |
+|---|---|---|
+| AUTH_SERVICE_URL | http://localhost:8080 | Auth service base URL (server-side only) |
+| NEXT_PUBLIC_APP_URL | http://localhost:3000 | Public app URL |
 
-## Learn More
+## Pages
 
-To learn more about Next.js, take a look at the following resources:
+| Path | Auth | Description |
+|---|---|---|
+| / | No | Landing page |
+| /login | No | Login form |
+| /register | No | Registration form |
+| /dashboard | JWT | Dashboard (placeholder) |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/                 Pages and layouts
+│   ├── (public)/        Login, register
+│   └── (dashboard)/     Protected routes
+├── components/
+│   ├── landing/         Hero, features, pricing, etc.
+│   └── auth/            Auth forms and layout
+├── lib/
+│   ├── auth/            Server actions, cookies, types
+│   └── api/             Auth-service client
+└── proxy.ts             Route protection
+```

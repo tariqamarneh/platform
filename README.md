@@ -21,7 +21,7 @@ The platform is a monorepo with three independently deployable microservices:
 |---|---|---|---|---|
 | [auth-service](services/auth-service/) | Java 21, Spring Boot 3.4 | 8080 | Implemented | Authentication, user management, API key management |
 | [ai-engine](services/ai-engine/) | Python 3.13, FastAPI | 8081 | Scaffolded | AI/ML processing, WhatsApp message handling |
-| [web](services/web/) | Next.js 16, React 19 | 3000 | Coming soon page | Business dashboard frontend |
+| [web](services/web/) | Next.js 16, React 19 | 3000 | Landing + Auth | Landing page, login/register, JWT auth via HTTP-only cookies |
 
 ### Service communication
 
@@ -40,9 +40,10 @@ web (dashboard) ──JWT──→ auth-service ←──API Key──── ai-
 ### Run everything locally
 
 ```bash
-# Start auth-service with PostgreSQL and Redis
+# Start all services (Postgres, Redis, auth-service, web)
 docker compose up --build
 
+# Web app:      http://localhost:3000
 # Auth service: http://localhost:8080
 # Swagger UI:   http://localhost:8080/swagger-ui/index.html
 ```
