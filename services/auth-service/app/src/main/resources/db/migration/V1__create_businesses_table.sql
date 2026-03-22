@@ -1,0 +1,8 @@
+CREATE TABLE businesses (
+    id UUID PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    plan VARCHAR(50) NOT NULL DEFAULT 'FREE',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    version BIGINT NOT NULL DEFAULT 0
+);
