@@ -48,6 +48,19 @@ services:
       redis:
         condition: service_healthy
 
+  web:
+    build:
+      context: ./services/web
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:8080
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      PORT: 3000
+    depends_on:
+      - auth-service
+
 volumes:
   postgres_data:
   redis_data:
