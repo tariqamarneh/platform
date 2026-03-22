@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { adminFetch } from '@/lib/auth/admin-actions';
 import Link from 'next/link';
 import { BusinessActions } from '@/components/admin/business-actions';
+import { notFound } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Business Detail | Admin',
@@ -34,8 +35,17 @@ interface PageResponse {
 export default async function BusinessDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const bizResponse = await adminFetch(`/api/v1/admin/businesses/${id}`);
-  const business: Business = await bizResponse.json();
+  let business: Business;
+  try {
+    const bizResponse = await adminFetch(`/api/v1/admin/businesses/${id}`);
+    if (!bizResponse.ok) {
+      if (bizResponse.status === 404) notFound();
+      throw new Error('Failed to load business');
+    }
+    business = await bizResponse.json();
+  } catch {
+    notFound();
+  }
 
   const usersResponse = await adminFetch(`/api/v1/admin/businesses/${id}/users?page=0&size=50`);
   const users: PageResponse = usersResponse.ok

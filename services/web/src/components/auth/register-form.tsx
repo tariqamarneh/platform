@@ -272,6 +272,7 @@ export function RegisterForm() {
           type="button"
           role="checkbox"
           aria-checked={termsChecked}
+          aria-label="Agree to terms and conditions"
           onClick={() => setTermsChecked(!termsChecked)}
           className={`mt-0.5 flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded border transition-all ${
             termsChecked

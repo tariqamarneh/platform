@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { AuthLayout } from '@/components/auth/auth-layout';
 import { LoginForm } from '@/components/auth/login-form';
 
@@ -13,7 +14,9 @@ export default function LoginPage() {
       title="Welcome back"
       subtitle="Log in to manage your AI chatbot"
     >
-      <LoginForm />
+      <Suspense>
+        <LoginForm />
+      </Suspense>
     </AuthLayout>
   );
 }

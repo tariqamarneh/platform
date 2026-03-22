@@ -1,13 +1,14 @@
 'use client';
 
 import { useActionState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { login } from '@/lib/auth/actions';
 import type { ActionResult } from '@/lib/auth/types';
 
 export function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   async function loginAction(
     _prevState: ActionResult,
@@ -30,9 +31,10 @@ export function LoginForm() {
 
   useEffect(() => {
     if (state.success) {
-      router.push('/dashboard');
+      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      router.push(callbackUrl);
     }
-  }, [state.success, router]);
+  }, [state.success, router, searchParams]);
 
   return (
     <form action={formAction} className="space-y-5">

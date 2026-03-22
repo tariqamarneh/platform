@@ -1,5 +1,6 @@
 'use server';
 
+import { cache } from 'react';
 import { redirect } from 'next/navigation';
 import { authServiceFetch } from '@/lib/api/client';
 import { setAuthCookies, getAccessToken, getRefreshToken, clearAuthCookies } from './cookies';
@@ -13,8 +14,14 @@ export async function login(data: LoginData): Promise<ActionResult> {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      return { success: false, error: error.message || 'Invalid email or password' };
+      let message = 'Invalid email or password';
+      try {
+        const error = await response.json();
+        message = error.message || message;
+      } catch {
+        // Response wasn't JSON
+      }
+      return { success: false, error: message };
     }
 
     const tokens = await response.json();
@@ -33,8 +40,14 @@ export async function register(data: RegisterData): Promise<ActionResult> {
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      return { success: false, error: error.message || 'Registration failed' };
+      let message = 'Registration failed';
+      try {
+        const error = await response.json();
+        message = error.message || message;
+      } catch {
+        // Response wasn't JSON
+      }
+      return { success: false, error: message };
     }
 
     const tokens = await response.json();
@@ -70,7 +83,7 @@ export async function refreshTokens(): Promise<boolean> {
   }
 }
 
-export async function getCurrentUser(): Promise<User | null> {
+export const getCurrentUser = cache(async function getCurrentUser(): Promise<User | null> {
   let accessToken = await getAccessToken();
 
   if (!accessToken) {
@@ -105,4 +118,4 @@ export async function getCurrentUser(): Promise<User | null> {
   } catch {
     return null;
   }
-}
+});

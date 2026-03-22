@@ -130,6 +130,7 @@ export function Hero() {
           >
             Start Free
             <svg
+              aria-hidden="true"
               width="16"
               height="16"
               viewBox="0 0 24 24"
@@ -185,6 +186,7 @@ export function Hero() {
             Scroll
           </span>
           <svg
+            aria-hidden="true"
             width="16"
             height="16"
             viewBox="0 0 24 24"

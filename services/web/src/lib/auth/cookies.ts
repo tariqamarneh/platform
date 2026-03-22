@@ -1,3 +1,5 @@
+'use server';
+
 import { cookies } from 'next/headers';
 
 const ACCESS_TOKEN_COOKIE = 'access_token';

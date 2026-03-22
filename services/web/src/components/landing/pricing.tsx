@@ -84,6 +84,9 @@ export function Pricing() {
               Monthly
             </span>
             <button
+              role="switch"
+              aria-checked={annual}
+              aria-label="Toggle annual billing"
               onClick={() => setAnnual(!annual)}
               className={`relative h-7 w-12 rounded-full transition-colors duration-300 ${
                 annual ? 'bg-blue-500' : 'bg-white/10'

@@ -59,3 +59,30 @@ export async function adminFetch(path: string, options: RequestInit = {}): Promi
     },
   });
 }
+
+export async function updateBusiness(
+  businessId: string,
+  data: { plan?: string; status?: string }
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const token = await getAdminToken();
+    if (!token) return { success: false, error: 'Not authenticated' };
+
+    const response = await authServiceFetch(`/api/v1/admin/businesses/${businessId}`, {
+      method: 'PATCH',
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      return { success: false, error: 'Failed to update business' };
+    }
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Unable to connect to the server' };
+  }
+}
