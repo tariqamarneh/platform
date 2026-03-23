@@ -1,0 +1,53 @@
+server:
+  port: ${PORT:8081}
+
+spring:
+  application:
+    name: channel-adapter
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/channel}
+    username: ${DATABASE_USER:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui
+    operations-sorter: method
+
+app:
+  meta:
+    app-secret: ${META_APP_SECRET:}
+    verify-token: ${META_VERIFY_TOKEN:default-verify-token}
+    api-version: v21.0
+    api-base-url: https://graph.facebook.com
+  encryption:
+    key: ${ENCRYPTION_KEY:dev-encryption-key-must-be-32bytes!}
+  services:
+    inbox-url: ${INBOX_SERVICE_URL:http://localhost:8082}
+    auth-url: ${AUTH_SERVICE_URL:http://localhost:8080}
