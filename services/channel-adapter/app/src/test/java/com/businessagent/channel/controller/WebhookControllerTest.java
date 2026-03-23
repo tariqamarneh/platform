@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.businessagent.channel.security.ApiKeyAuthFilter;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -32,6 +33,9 @@ class WebhookControllerTest {
 
     @MockitoBean
     private WebhookSignatureValidator webhookSignatureValidator;
+
+    @MockitoBean
+    private ApiKeyAuthFilter apiKeyAuthFilter;
 
     @Test
     void verifyWebhook_shouldReturn200WithChallenge() throws Exception {

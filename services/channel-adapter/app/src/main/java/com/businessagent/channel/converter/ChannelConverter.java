@@ -1,5 +1,6 @@
 package com.businessagent.channel.converter;
 
+import com.businessagent.channel.dto.response.ChannelCreatedResponse;
 import com.businessagent.channel.dto.response.ChannelResponse;
 import com.businessagent.channel.model.Channel;
 import org.springframework.stereotype.Component;
@@ -16,10 +17,24 @@ public class ChannelConverter {
                 channel.getPhoneNumber(),
                 channel.getPhoneNumberId(),
                 channel.getWabaId(),
-                channel.getWebhookToken(),
                 channel.getStatus(),
                 channel.getCreatedAt(),
                 channel.getUpdatedAt()
+        );
+    }
+
+    public ChannelCreatedResponse toCreatedResponse(Channel channel) {
+        return new ChannelCreatedResponse(
+                channel.getId(),
+                channel.getBusinessId(),
+                channel.getProvider(),
+                channel.getDisplayName(),
+                channel.getPhoneNumber(),
+                channel.getPhoneNumberId(),
+                channel.getWabaId(),
+                channel.getWebhookToken(),
+                channel.getStatus(),
+                channel.getCreatedAt()
         );
     }
 }

@@ -2,6 +2,7 @@ package com.businessagent.channel.controller;
 
 import com.businessagent.channel.dto.request.CreateChannelRequest;
 import com.businessagent.channel.dto.request.UpdateChannelRequest;
+import com.businessagent.channel.dto.response.ChannelCreatedResponse;
 import com.businessagent.channel.dto.response.ChannelResponse;
 import com.businessagent.channel.service.ChannelService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,7 +26,7 @@ public class ChannelController {
 
     @PostMapping
     @Operation(summary = "Register a new WhatsApp channel")
-    public ResponseEntity<ChannelResponse> createChannel(@Valid @RequestBody CreateChannelRequest request) {
+    public ResponseEntity<ChannelCreatedResponse> createChannel(@Valid @RequestBody CreateChannelRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(channelService.createChannel(request));
     }
 

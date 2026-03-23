@@ -1,5 +1,7 @@
 package com.businessagent.channel.util;
 
+import com.businessagent.channel.exception.EncryptionException;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -33,7 +35,7 @@ public final class EncryptionUtil {
 
             return Base64.getEncoder().encodeToString(combined);
         } catch (Exception e) {
-            throw new RuntimeException("Encryption failed", e);
+            throw new EncryptionException("Encryption failed", e);
         }
     }
 
@@ -54,7 +56,7 @@ public final class EncryptionUtil {
 
             return new String(decrypted, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new RuntimeException("Decryption failed", e);
+            throw new EncryptionException("Decryption failed", e);
         }
     }
 

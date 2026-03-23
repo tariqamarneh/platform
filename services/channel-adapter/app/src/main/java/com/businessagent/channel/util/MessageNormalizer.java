@@ -25,10 +25,18 @@ public final class MessageNormalizer {
                 channel.getBusinessId().toString(),
                 msg.from(),
                 customerName,
-                Long.parseLong(msg.timestamp()),
+                parseTimestamp(msg.timestamp()),
                 type,
                 payload
         );
+    }
+
+    private static long parseTimestamp(String timestamp) {
+        try {
+            return timestamp != null ? Long.parseLong(timestamp) : System.currentTimeMillis() / 1000;
+        } catch (NumberFormatException e) {
+            return System.currentTimeMillis() / 1000;
+        }
     }
 
     private static MessageType parseType(String type) {

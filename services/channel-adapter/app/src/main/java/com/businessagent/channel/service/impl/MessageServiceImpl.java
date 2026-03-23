@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -29,6 +30,7 @@ public class MessageServiceImpl implements MessageService {
     private final AppProperties appProperties;
 
     @Override
+    @Transactional(readOnly = true)
     public SendMessageResponse sendMessage(SendMessageRequest request) {
         Channel channel = findChannel(request.channelId());
         String apiKey = EncryptionUtil.decrypt(channel.getApiKeyEncrypted(), appProperties.encryption().key());
@@ -37,6 +39,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void sendTypingIndicator(TypingRequest request) {
         Channel channel = findChannel(request.channelId());
         String apiKey = EncryptionUtil.decrypt(channel.getApiKeyEncrypted(), appProperties.encryption().key());
@@ -45,6 +48,7 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void markAsRead(ReadReceiptRequest request) {
         Channel channel = findChannel(request.channelId());
         String apiKey = EncryptionUtil.decrypt(channel.getApiKeyEncrypted(), appProperties.encryption().key());

@@ -57,9 +57,9 @@ class ChannelServiceImplTest {
             ch.setId(CHANNEL_ID);
             return ch;
         });
-        when(channelConverter.toResponse(any(Channel.class))).thenReturn(buildChannelResponse());
+        when(channelConverter.toCreatedResponse(any(Channel.class))).thenReturn(buildChannelCreatedResponse());
 
-        ChannelResponse response = channelService.createChannel(request);
+        var response = channelService.createChannel(request);
 
         assertNotNull(response);
         ArgumentCaptor<Channel> captor = ArgumentCaptor.forClass(Channel.class);
@@ -164,7 +164,13 @@ class ChannelServiceImplTest {
         return new ChannelResponse(
                 CHANNEL_ID, BUSINESS_ID, ChannelProvider.WHATSAPP,
                 "My Channel", "+5511999990000", "phone-id-1", "waba-1",
-                "webhook-token", ChannelStatus.ACTIVE,
-                LocalDateTime.now(), LocalDateTime.now());
+                ChannelStatus.ACTIVE, LocalDateTime.now(), LocalDateTime.now());
+    }
+
+    private com.businessagent.channel.dto.response.ChannelCreatedResponse buildChannelCreatedResponse() {
+        return new com.businessagent.channel.dto.response.ChannelCreatedResponse(
+                CHANNEL_ID, BUSINESS_ID, ChannelProvider.WHATSAPP,
+                "My Channel", "+5511999990000", "phone-id-1", "waba-1",
+                "webhook-token", ChannelStatus.ACTIVE, LocalDateTime.now());
     }
 }

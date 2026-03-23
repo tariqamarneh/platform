@@ -12,6 +12,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.businessagent.channel.security.ApiKeyAuthFilter;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.UUID;
@@ -36,6 +37,9 @@ class MessageControllerTest {
 
     @MockitoBean
     private MessageService messageService;
+
+    @MockitoBean
+    private ApiKeyAuthFilter apiKeyAuthFilter;
 
     @MockitoBean
     private WebhookSignatureValidator webhookSignatureValidator;

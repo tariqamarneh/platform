@@ -4,6 +4,7 @@ import com.businessagent.channel.config.AppProperties;
 import com.businessagent.channel.converter.ChannelConverter;
 import com.businessagent.channel.dto.request.CreateChannelRequest;
 import com.businessagent.channel.dto.request.UpdateChannelRequest;
+import com.businessagent.channel.dto.response.ChannelCreatedResponse;
 import com.businessagent.channel.dto.response.ChannelResponse;
 import com.businessagent.channel.exception.ChannelNotFoundException;
 import com.businessagent.channel.exception.DuplicateChannelException;
@@ -16,6 +17,7 @@ import com.businessagent.channel.util.EncryptionUtil;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,7 +35,7 @@ public class ChannelServiceImpl implements ChannelService {
 
     @Override
     @Transactional
-    public ChannelResponse createChannel(CreateChannelRequest request) {
+    public ChannelCreatedResponse createChannel(CreateChannelRequest request) {
         log.info("Creating channel: businessId={}, phoneNumberId={}", request.businessId(), request.phoneNumberId());
 
         if (channelRepository.existsByBusinessIdAndPhoneNumberId(request.businessId(), request.phoneNumberId())) {
@@ -51,10 +53,14 @@ public class ChannelServiceImpl implements ChannelService {
         channel.setWebhookToken(UUID.randomUUID().toString());
         channel.setStatus(ChannelStatus.ACTIVE);
 
-        channel = channelRepository.save(channel);
+        try {
+            channel = channelRepository.save(channel);
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateChannelException("Channel already exists for this phone number");
+        }
 
-        log.info("Channel created: channelId={}, webhookToken={}", channel.getId(), channel.getWebhookToken());
-        return channelConverter.toResponse(channel);
+        log.info("Channel created: channelId={}, businessId={}", channel.getId(), channel.getBusinessId());
+        return channelConverter.toCreatedResponse(channel);
     }
 
     @Override

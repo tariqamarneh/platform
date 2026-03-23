@@ -5,21 +5,14 @@ import com.businessagent.channel.model.enums.ChannelStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "channels")
 @Getter
 @Setter
-public class Channel {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class Channel extends BaseEntity {
 
     @Column(name = "business_id", nullable = false)
     private UUID businessId;
@@ -28,13 +21,13 @@ public class Channel {
     @Column(nullable = false)
     private ChannelProvider provider;
 
-    @Column(name = "display_name")
+    @Column(name = "display_name", nullable = false)
     private String displayName;
 
     @Column(name = "phone_number")
     private String phoneNumber;
 
-    @Column(name = "phone_number_id", nullable = false)
+    @Column(name = "phone_number_id")
     private String phoneNumberId;
 
     @Column(name = "waba_id")
@@ -48,13 +41,8 @@ public class Channel {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ChannelStatus status;
+    private ChannelStatus status = ChannelStatus.ACTIVE;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    @Version
+    private Long version;
 }

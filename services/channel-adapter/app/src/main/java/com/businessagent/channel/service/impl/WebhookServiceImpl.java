@@ -25,6 +25,7 @@ public class WebhookServiceImpl implements WebhookService {
     private final InboxServiceClient inboxServiceClient;
 
     @Override
+    @Transactional(readOnly = true)
     public String verifyWebhook(String webhookToken, String mode, String challenge, String verifyToken) {
         // Verify the webhook token matches a registered channel
         Channel channel = channelRepository.findByWebhookToken(webhookToken)

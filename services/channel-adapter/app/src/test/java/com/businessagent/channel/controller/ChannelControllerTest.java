@@ -1,5 +1,6 @@
 package com.businessagent.channel.controller;
 
+import com.businessagent.channel.dto.response.ChannelCreatedResponse;
 import com.businessagent.channel.dto.response.ChannelResponse;
 import com.businessagent.channel.exception.GlobalExceptionHandler;
 import com.businessagent.channel.model.enums.ChannelProvider;
@@ -14,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import com.businessagent.channel.security.ApiKeyAuthFilter;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -42,6 +44,9 @@ class ChannelControllerTest {
     private ChannelService channelService;
 
     @MockitoBean
+    private ApiKeyAuthFilter apiKeyAuthFilter;
+
+    @MockitoBean
     private WebhookSignatureValidator webhookSignatureValidator;
 
     private static final UUID CHANNEL_ID = UUID.randomUUID();
@@ -49,7 +54,7 @@ class ChannelControllerTest {
 
     @Test
     void createChannel_shouldReturn201() throws Exception {
-        when(channelService.createChannel(any())).thenReturn(buildChannelResponse());
+        when(channelService.createChannel(any())).thenReturn(buildChannelCreatedResponse());
 
         String body = """
                 {
@@ -118,7 +123,13 @@ class ChannelControllerTest {
         return new ChannelResponse(
                 CHANNEL_ID, BUSINESS_ID, ChannelProvider.WHATSAPP,
                 "My Channel", "+5511999990000", "phone-id-1", "waba-1",
-                "webhook-token", ChannelStatus.ACTIVE,
-                LocalDateTime.now(), LocalDateTime.now());
+                ChannelStatus.ACTIVE, LocalDateTime.now(), LocalDateTime.now());
+    }
+
+    private ChannelCreatedResponse buildChannelCreatedResponse() {
+        return new ChannelCreatedResponse(
+                CHANNEL_ID, BUSINESS_ID, ChannelProvider.WHATSAPP,
+                "My Channel", "+5511999990000", "phone-id-1", "waba-1",
+                "webhook-token", ChannelStatus.ACTIVE, LocalDateTime.now());
     }
 }

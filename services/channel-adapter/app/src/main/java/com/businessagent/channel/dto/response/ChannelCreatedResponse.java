@@ -6,7 +6,7 @@ import com.businessagent.channel.model.enums.ChannelStatus;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record ChannelResponse(
+public record ChannelCreatedResponse(
     UUID id,
     UUID businessId,
     ChannelProvider provider,
@@ -14,7 +14,7 @@ public record ChannelResponse(
     String phoneNumber,
     String phoneNumberId,
     String wabaId,
+    String webhookToken,
     ChannelStatus status,
-    LocalDateTime createdAt,
-    LocalDateTime updatedAt
+    LocalDateTime createdAt
 ) {}

@@ -4,8 +4,8 @@ CREATE TABLE channels (
     provider VARCHAR(50) NOT NULL,
     display_name VARCHAR(255) NOT NULL,
     phone_number VARCHAR(50),
-    phone_number_id VARCHAR(100),
-    waba_id VARCHAR(100),
+    phone_number_id VARCHAR(100) NOT NULL,
+    waba_id VARCHAR(100) NOT NULL,
     api_key_encrypted TEXT NOT NULL,
     webhook_token VARCHAR(255) NOT NULL UNIQUE,
     status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
@@ -17,3 +17,4 @@ CREATE TABLE channels (
 CREATE INDEX idx_channels_business_id ON channels(business_id);
 CREATE UNIQUE INDEX idx_channels_webhook_token ON channels(webhook_token);
 CREATE INDEX idx_channels_phone_number_id ON channels(phone_number_id);
+CREATE UNIQUE INDEX idx_channels_business_phone ON channels(business_id, phone_number_id);

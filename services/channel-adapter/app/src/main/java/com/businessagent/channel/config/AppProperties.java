@@ -15,7 +15,13 @@ public record AppProperties(
         String apiBaseUrl
     ) {}
 
-    public record EncryptionProperties(String key) {}
+    public record EncryptionProperties(String key) {
+        public EncryptionProperties {
+            if (key == null || key.length() < 16) {
+                throw new IllegalArgumentException("Encryption key must be at least 16 characters");
+            }
+        }
+    }
 
     public record ServicesProperties(
         String inboxUrl,
