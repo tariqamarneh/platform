@@ -3,6 +3,7 @@ server:
   tomcat:
     max-http-form-post-size: 1MB
     max-swallow-size: 1MB
+    max-http-post-size: 1048576
 
 spring:
   application:

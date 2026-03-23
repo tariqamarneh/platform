@@ -50,6 +50,7 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
         return path.startsWith("/webhook/")
                 || path.equals("/health")
+                || path.equals("/error")
                 || path.startsWith("/actuator/")
                 || path.startsWith("/api-docs")
                 || path.startsWith("/swagger-ui");

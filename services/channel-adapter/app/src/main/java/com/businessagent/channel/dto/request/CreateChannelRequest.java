@@ -10,6 +10,6 @@ public record CreateChannelRequest(
     @NotBlank String displayName,
     @NotBlank String phoneNumber,
     @NotBlank String phoneNumberId,
-    String wabaId,
+    @NotBlank String wabaId,
     @NotBlank String apiKey
 ) {}
