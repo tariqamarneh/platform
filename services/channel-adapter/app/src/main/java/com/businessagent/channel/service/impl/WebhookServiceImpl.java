@@ -3,11 +3,13 @@ package com.businessagent.channel.service.impl;
 import com.businessagent.channel.client.InboxServiceClient;
 import com.businessagent.channel.config.AppProperties;
 import com.businessagent.channel.dto.internal.InboundMessage;
+import com.businessagent.channel.dto.webhook.InstagramWebhookPayload;
 import com.businessagent.channel.dto.webhook.MetaWebhookPayload;
 import com.businessagent.channel.exception.WebhookValidationException;
 import com.businessagent.channel.model.Channel;
 import com.businessagent.channel.repository.ChannelRepository;
 import com.businessagent.channel.service.WebhookService;
+import com.businessagent.channel.util.InstagramMessageNormalizer;
 import com.businessagent.channel.util.MessageNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -45,7 +47,7 @@ public class WebhookServiceImpl implements WebhookService {
 
     @Override
     @Transactional(readOnly = true)
-    public void processWebhook(String webhookToken, MetaWebhookPayload payload) {
+    public void processWhatsAppWebhook(String webhookToken, MetaWebhookPayload payload) {
         Channel channel = channelRepository.findByWebhookToken(webhookToken)
                 .orElseThrow(() -> new WebhookValidationException("Unknown webhook token"));
 
@@ -68,6 +70,45 @@ public class WebhookServiceImpl implements WebhookService {
                         log.debug("Message status update: messageId={}, status={}", status.id(), status.status());
                         // TODO: Forward status updates to inbox-service when needed
                     }
+                }
+            }
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public void processInstagramWebhook(String webhookToken, InstagramWebhookPayload payload) {
+        Channel channel = channelRepository.findByWebhookToken(webhookToken)
+                .orElseThrow(() -> new WebhookValidationException("Unknown webhook token"));
+
+        if (payload.entry() == null) return;
+
+        for (var entry : payload.entry()) {
+            if (entry.messaging() == null) continue;
+
+            for (var messaging : entry.messaging()) {
+                // Skip echo messages (messages sent by the page itself)
+                if (messaging.message() != null && Boolean.TRUE.equals(messaging.message().isEcho())) {
+                    continue;
+                }
+
+                // Skip read receipts
+                if (messaging.read() != null) {
+                    log.debug("Instagram read receipt: watermark={}", messaging.read().watermark());
+                    continue;
+                }
+
+                // Process actual messages
+                if (messaging.message() != null) {
+                    InboundMessage inbound = InstagramMessageNormalizer.normalize(channel, messaging);
+                    inboxServiceClient.forwardMessage(inbound);
+                }
+
+                // Process postbacks (button clicks)
+                if (messaging.postback() != null) {
+                    log.debug("Instagram postback: title={}, payload={}",
+                            messaging.postback().title(), messaging.postback().payload());
+                    // TODO: Normalize and forward postbacks when needed
                 }
             }
         }

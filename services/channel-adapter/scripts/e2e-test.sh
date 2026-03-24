@@ -102,7 +102,7 @@ bold "\n=== 2. AUTH ENFORCEMENT ==="
 # No API key
 RESPONSE=$(api POST "$ADAPTER_URL/api/v1/channels" \
   -H "Content-Type: application/json" \
-  -d '{"businessId":"'$BUSINESS_ID'","displayName":"X","phoneNumber":"+1","phoneNumberId":"1","wabaId":"1","apiKey":"k"}')
+  -d '{"businessId":"'$BUSINESS_ID'","provider":"WHATSAPP","displayName":"X","phoneNumber":"+1","phoneNumberId":"1","wabaId":"1","apiKey":"k"}')
 parse
 assert_status "Create channel without API key → 401" "401" "$CODE"
 
@@ -110,7 +110,7 @@ assert_status "Create channel without API key → 401" "401" "$CODE"
 RESPONSE=$(api POST "$ADAPTER_URL/api/v1/channels" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: ba_live_invalidkey123" \
-  -d '{"businessId":"'$BUSINESS_ID'","displayName":"X","phoneNumber":"+1","phoneNumberId":"1","wabaId":"1","apiKey":"k"}')
+  -d '{"businessId":"'$BUSINESS_ID'","provider":"WHATSAPP","displayName":"X","phoneNumber":"+1","phoneNumberId":"1","wabaId":"1","apiKey":"k"}')
 parse
 assert_status "Create channel with invalid API key → 401" "401" "$CODE"
 
@@ -129,7 +129,7 @@ bold "\n=== 3. CHANNEL CRUD ==="
 RESPONSE=$(api POST "$ADAPTER_URL/api/v1/channels" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_KEY" \
-  -d "{\"businessId\":\"$BUSINESS_ID\",\"displayName\":\"E2E WhatsApp\",\"phoneNumber\":\"+5511999990000\",\"phoneNumberId\":\"pn-${UID_SUFFIX}\",\"wabaId\":\"waba-${UID_SUFFIX}\",\"apiKey\":\"fake-meta-token\"}")
+  -d "{\"businessId\":\"$BUSINESS_ID\",\"provider\":\"WHATSAPP\",\"displayName\":\"E2E WhatsApp\",\"phoneNumber\":\"+5511999990000\",\"phoneNumberId\":\"pn-${UID_SUFFIX}\",\"wabaId\":\"waba-${UID_SUFFIX}\",\"apiKey\":\"fake-meta-token\"}")
 parse
 assert_status "Create channel" "201" "$CODE"
 CHANNEL_ID=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
@@ -149,7 +149,7 @@ fi
 RESPONSE=$(api POST "$ADAPTER_URL/api/v1/channels" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_KEY" \
-  -d "{\"businessId\":\"$BUSINESS_ID\",\"displayName\":\"Dupe\",\"phoneNumber\":\"+5511999990000\",\"phoneNumberId\":\"pn-${UID_SUFFIX}\",\"wabaId\":\"waba-${UID_SUFFIX}\",\"apiKey\":\"fake-token\"}")
+  -d "{\"businessId\":\"$BUSINESS_ID\",\"provider\":\"WHATSAPP\",\"displayName\":\"Dupe\",\"phoneNumber\":\"+5511999990000\",\"phoneNumberId\":\"pn-${UID_SUFFIX}\",\"wabaId\":\"waba-${UID_SUFFIX}\",\"apiKey\":\"fake-token\"}")
 parse
 assert_status "Duplicate channel → 409" "409" "$CODE"
 
@@ -191,7 +191,7 @@ bold "\n=== 4. WEBHOOK VERIFICATION ==="
 # ==============================================================================
 
 # Valid verification
-RESPONSE=$(api GET "$ADAPTER_URL/webhook/$WEBHOOK_TOKEN?hub.mode=subscribe&hub.challenge=test-challenge-123&hub.verify_token=local-dev-verify-token")
+RESPONSE=$(api GET "$ADAPTER_URL/webhook/whatsapp/$WEBHOOK_TOKEN?hub.mode=subscribe&hub.challenge=test-challenge-123&hub.verify_token=local-dev-verify-token")
 parse
 assert_status "Webhook verify" "200" "$CODE"
 
@@ -205,12 +205,12 @@ else
 fi
 
 # Wrong verify token
-RESPONSE=$(api GET "$ADAPTER_URL/webhook/$WEBHOOK_TOKEN?hub.mode=subscribe&hub.challenge=test&hub.verify_token=wrong-token")
+RESPONSE=$(api GET "$ADAPTER_URL/webhook/whatsapp/$WEBHOOK_TOKEN?hub.mode=subscribe&hub.challenge=test&hub.verify_token=wrong-token")
 parse
 assert_status "Webhook verify wrong token → 401" "401" "$CODE"
 
 # Unknown webhook token
-RESPONSE=$(api GET "$ADAPTER_URL/webhook/unknown-token?hub.mode=subscribe&hub.challenge=test&hub.verify_token=local-dev-verify-token")
+RESPONSE=$(api GET "$ADAPTER_URL/webhook/whatsapp/unknown-token?hub.mode=subscribe&hub.challenge=test&hub.verify_token=local-dev-verify-token")
 parse
 assert_status "Webhook verify unknown token → 401" "401" "$CODE"
 
@@ -248,7 +248,7 @@ WEBHOOK_BODY='{
 SIGNATURE=$(echo -n "$WEBHOOK_BODY" | openssl dgst -sha256 -hmac "local-dev-meta-app-secret" | awk '{print $2}')
 
 # Post webhook with valid signature (inbox-service is not running, so forwarding will fail silently — that's OK)
-RESPONSE=$(api POST "$ADAPTER_URL/webhook/$WEBHOOK_TOKEN" \
+RESPONSE=$(api POST "$ADAPTER_URL/webhook/whatsapp/$WEBHOOK_TOKEN" \
   -H "Content-Type: application/json" \
   -H "X-Hub-Signature-256: sha256=$SIGNATURE" \
   -d "$WEBHOOK_BODY")
@@ -256,7 +256,7 @@ parse
 assert_status "Webhook with valid signature → 200" "200" "$CODE"
 
 # Post with invalid signature
-RESPONSE=$(api POST "$ADAPTER_URL/webhook/$WEBHOOK_TOKEN" \
+RESPONSE=$(api POST "$ADAPTER_URL/webhook/whatsapp/$WEBHOOK_TOKEN" \
   -H "Content-Type: application/json" \
   -H "X-Hub-Signature-256: sha256=invalidsignature" \
   -d "$WEBHOOK_BODY")
@@ -264,14 +264,56 @@ parse
 assert_status "Webhook with invalid signature → 401" "401" "$CODE"
 
 # Post without signature
-RESPONSE=$(api POST "$ADAPTER_URL/webhook/$WEBHOOK_TOKEN" \
+RESPONSE=$(api POST "$ADAPTER_URL/webhook/whatsapp/$WEBHOOK_TOKEN" \
   -H "Content-Type: application/json" \
   -d "$WEBHOOK_BODY")
 parse
 assert_status "Webhook without signature → 401" "401" "$CODE"
 
 # ==============================================================================
-bold "\n=== 6. CHANNEL DEACTIVATION ==="
+bold "\n=== 6. INSTAGRAM CHANNEL ==="
+# ==============================================================================
+
+# Instagram channel without required fields
+RESPONSE=$(api POST "$ADAPTER_URL/api/v1/channels" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_KEY" \
+  -d "{\"businessId\":\"$BUSINESS_ID\",\"provider\":\"INSTAGRAM\",\"displayName\":\"Bad IG\",\"apiKey\":\"token\"}")
+parse
+assert_status "Instagram channel without required fields → 400" "400" "$CODE"
+
+# Create Instagram channel
+RESPONSE=$(api POST "$ADAPTER_URL/api/v1/channels" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_KEY" \
+  -d "{\"businessId\":\"$BUSINESS_ID\",\"provider\":\"INSTAGRAM\",\"displayName\":\"E2E Instagram\",\"pageId\":\"page-${UID_SUFFIX}\",\"instagramAccountId\":\"ig-${UID_SUFFIX}\",\"apiKey\":\"fake-ig-token\"}")
+parse
+assert_status "Create Instagram channel" "201" "$CODE"
+IG_CHANNEL_ID=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+IG_WEBHOOK_TOKEN=$(echo "$BODY" | python3 -c "import sys,json; print(json.load(sys.stdin)['webhookToken'])")
+
+# Verify Instagram webhook
+RESPONSE=$(api GET "$ADAPTER_URL/webhook/instagram/$IG_WEBHOOK_TOKEN?hub.mode=subscribe&hub.challenge=ig-challenge&hub.verify_token=local-dev-verify-token")
+parse
+assert_status "Instagram webhook verify" "200" "$CODE"
+
+TOTAL=$((TOTAL + 1))
+if [ "$BODY" = "ig-challenge" ]; then
+  green "  PASS: Instagram challenge echoed correctly"
+  PASSED=$((PASSED + 1))
+else
+  red "  FAIL: Instagram challenge not echoed (got: $BODY)"
+  FAILED=$((FAILED + 1))
+fi
+
+# Deactivate Instagram channel
+RESPONSE=$(api DELETE "$ADAPTER_URL/api/v1/channels/$IG_CHANNEL_ID" \
+  -H "X-API-Key: $API_KEY")
+parse
+assert_status "Deactivate Instagram channel" "204" "$CODE"
+
+# ==============================================================================
+bold "\n=== 7. CHANNEL DEACTIVATION ==="
 # ==============================================================================
 
 RESPONSE=$(api DELETE "$ADAPTER_URL/api/v1/channels/$CHANNEL_ID" \

@@ -14,6 +14,8 @@ public record ChannelCreatedResponse(
     String phoneNumber,
     String phoneNumberId,
     String wabaId,
+    String pageId,
+    String instagramAccountId,
     String webhookToken,
     ChannelStatus status,
     LocalDateTime createdAt

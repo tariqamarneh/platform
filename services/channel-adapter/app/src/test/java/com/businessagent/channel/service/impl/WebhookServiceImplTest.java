@@ -3,6 +3,7 @@ package com.businessagent.channel.service.impl;
 import com.businessagent.channel.client.InboxServiceClient;
 import com.businessagent.channel.config.AppProperties;
 import com.businessagent.channel.dto.internal.InboundMessage;
+import com.businessagent.channel.dto.webhook.InstagramWebhookPayload;
 import com.businessagent.channel.dto.webhook.MetaWebhookPayload;
 import com.businessagent.channel.exception.WebhookValidationException;
 import com.businessagent.channel.model.Channel;
@@ -106,9 +107,47 @@ class WebhookServiceImplTest {
                 List.of(new MetaWebhookPayload.Entry("entry-1",
                         List.of(new MetaWebhookPayload.Change("messages", value)))));
 
-        webhookService.processWebhook("token-abc", payload);
+        webhookService.processWhatsAppWebhook("token-abc", payload);
 
         verify(inboxServiceClient).forwardMessage(any(InboundMessage.class));
+    }
+
+    @Test
+    void processInstagramWebhook_textMessage_shouldNormalizeAndForward() {
+        Channel channel = buildChannel();
+        when(channelRepository.findByWebhookToken("ig-token")).thenReturn(Optional.of(channel));
+
+        InstagramWebhookPayload.Message msg = new InstagramWebhookPayload.Message(
+            "mid.123", "Hello from Instagram", null, null, null, null);
+        InstagramWebhookPayload.Messaging messaging = new InstagramWebhookPayload.Messaging(
+            new InstagramWebhookPayload.Participant("sender-123"),
+            new InstagramWebhookPayload.Participant("recipient-456"),
+            1711100000L, msg, null, null);
+        InstagramWebhookPayload.Entry entry = new InstagramWebhookPayload.Entry("page-id", 1711100000L, List.of(messaging));
+        InstagramWebhookPayload payload = new InstagramWebhookPayload("instagram", List.of(entry));
+
+        webhookService.processInstagramWebhook("ig-token", payload);
+
+        verify(inboxServiceClient).forwardMessage(any(InboundMessage.class));
+    }
+
+    @Test
+    void processInstagramWebhook_echoMessage_shouldBeSkipped() {
+        Channel channel = buildChannel();
+        when(channelRepository.findByWebhookToken("ig-token")).thenReturn(Optional.of(channel));
+
+        InstagramWebhookPayload.Message msg = new InstagramWebhookPayload.Message(
+            "mid.echo", "Echo message", true, null, null, null);
+        InstagramWebhookPayload.Messaging messaging = new InstagramWebhookPayload.Messaging(
+            new InstagramWebhookPayload.Participant("sender"),
+            new InstagramWebhookPayload.Participant("recipient"),
+            1711100000L, msg, null, null);
+        InstagramWebhookPayload.Entry entry = new InstagramWebhookPayload.Entry("page-id", 1711100000L, List.of(messaging));
+        InstagramWebhookPayload payload = new InstagramWebhookPayload("instagram", List.of(entry));
+
+        webhookService.processInstagramWebhook("ig-token", payload);
+
+        verify(inboxServiceClient, never()).forwardMessage(any());
     }
 
     private Channel buildChannel() {

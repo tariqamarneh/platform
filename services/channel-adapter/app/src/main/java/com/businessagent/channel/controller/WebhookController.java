@@ -1,5 +1,6 @@
 package com.businessagent.channel.controller;
 
+import com.businessagent.channel.dto.webhook.InstagramWebhookPayload;
 import com.businessagent.channel.dto.webhook.MetaWebhookPayload;
 import com.businessagent.channel.security.WebhookSignatureValidator;
 import com.businessagent.channel.service.WebhookService;
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Webhooks", description = "Meta WhatsApp webhook endpoints")
+@Tag(name = "Webhooks", description = "Channel webhook endpoints")
 public class WebhookController {
 
     private static final Logger log = LoggerFactory.getLogger(WebhookController.class);
@@ -22,33 +23,63 @@ public class WebhookController {
     private final WebhookSignatureValidator signatureValidator;
     private final ObjectMapper objectMapper;
 
-    @GetMapping("/webhook/{token}")
-    @Operation(summary = "Meta webhook verification")
-    public ResponseEntity<String> verifyWebhook(
+    // --- Shared verification (same Meta pattern for both) ---
+
+    @GetMapping("/webhook/whatsapp/{token}")
+    @Operation(summary = "WhatsApp webhook verification")
+    public ResponseEntity<String> verifyWhatsAppWebhook(
             @PathVariable String token,
             @RequestParam("hub.mode") String mode,
             @RequestParam("hub.challenge") String challenge,
             @RequestParam("hub.verify_token") String verifyToken) {
-        String result = webhookService.verifyWebhook(token, mode, challenge, verifyToken);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(webhookService.verifyWebhook(token, mode, challenge, verifyToken));
     }
 
-    @PostMapping("/webhook/{token}")
-    @Operation(summary = "Receive Meta webhook events")
-    public ResponseEntity<Void> receiveWebhook(
+    @GetMapping("/webhook/instagram/{token}")
+    @Operation(summary = "Instagram webhook verification")
+    public ResponseEntity<String> verifyInstagramWebhook(
+            @PathVariable String token,
+            @RequestParam("hub.mode") String mode,
+            @RequestParam("hub.challenge") String challenge,
+            @RequestParam("hub.verify_token") String verifyToken) {
+        return ResponseEntity.ok(webhookService.verifyWebhook(token, mode, challenge, verifyToken));
+    }
+
+    // --- WhatsApp webhook ---
+
+    @PostMapping("/webhook/whatsapp/{token}")
+    @Operation(summary = "Receive WhatsApp webhook events")
+    public ResponseEntity<Void> receiveWhatsAppWebhook(
             @PathVariable String token,
             @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature,
             @RequestBody String rawBody) {
-        // Validate signature
         signatureValidator.validate(signature, rawBody);
 
-        // Parse and process
         try {
             MetaWebhookPayload payload = objectMapper.readValue(rawBody, MetaWebhookPayload.class);
-            webhookService.processWebhook(token, payload);
+            webhookService.processWhatsAppWebhook(token, payload);
         } catch (Exception e) {
-            // Log but still return 200 to Meta to prevent retries
-            log.error("Failed to process webhook: {}", e.getMessage());
+            log.error("Failed to process WhatsApp webhook: {}", e.getMessage());
+        }
+
+        return ResponseEntity.ok().build();
+    }
+
+    // --- Instagram webhook ---
+
+    @PostMapping("/webhook/instagram/{token}")
+    @Operation(summary = "Receive Instagram webhook events")
+    public ResponseEntity<Void> receiveInstagramWebhook(
+            @PathVariable String token,
+            @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature,
+            @RequestBody String rawBody) {
+        signatureValidator.validate(signature, rawBody);
+
+        try {
+            InstagramWebhookPayload payload = objectMapper.readValue(rawBody, InstagramWebhookPayload.class);
+            webhookService.processInstagramWebhook(token, payload);
+        } catch (Exception e) {
+            log.error("Failed to process Instagram webhook: {}", e.getMessage());
         }
 
         return ResponseEntity.ok().build();

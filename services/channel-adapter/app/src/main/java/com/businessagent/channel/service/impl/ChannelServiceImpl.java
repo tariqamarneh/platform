@@ -36,19 +36,47 @@ public class ChannelServiceImpl implements ChannelService {
     @Override
     @Transactional
     public ChannelCreatedResponse createChannel(CreateChannelRequest request) {
-        log.info("Creating channel: businessId={}, phoneNumberId={}", request.businessId(), request.phoneNumberId());
+        log.info("Creating channel: businessId={}, provider={}", request.businessId(), request.provider());
 
-        if (channelRepository.existsByBusinessIdAndPhoneNumberId(request.businessId(), request.phoneNumberId())) {
-            throw new DuplicateChannelException("Channel already exists for this phone number");
+        // Validate provider-specific required fields
+        if (request.provider() == ChannelProvider.WHATSAPP) {
+            if (request.phoneNumberId() == null || request.phoneNumberId().isBlank()) {
+                throw new IllegalArgumentException("phoneNumberId is required for WhatsApp channels");
+            }
+            if (request.wabaId() == null || request.wabaId().isBlank()) {
+                throw new IllegalArgumentException("wabaId is required for WhatsApp channels");
+            }
+        } else if (request.provider() == ChannelProvider.INSTAGRAM) {
+            if (request.pageId() == null || request.pageId().isBlank()) {
+                throw new IllegalArgumentException("pageId is required for Instagram channels");
+            }
+            if (request.instagramAccountId() == null || request.instagramAccountId().isBlank()) {
+                throw new IllegalArgumentException("instagramAccountId is required for Instagram channels");
+            }
+        }
+
+        // Provider-specific duplicate checks
+        if (request.provider() == ChannelProvider.WHATSAPP) {
+            if (request.phoneNumberId() != null &&
+                channelRepository.existsByBusinessIdAndPhoneNumberId(request.businessId(), request.phoneNumberId())) {
+                throw new DuplicateChannelException("WhatsApp channel already exists for this phone number");
+            }
+        } else if (request.provider() == ChannelProvider.INSTAGRAM) {
+            if (request.instagramAccountId() != null &&
+                channelRepository.existsByBusinessIdAndInstagramAccountId(request.businessId(), request.instagramAccountId())) {
+                throw new DuplicateChannelException("Instagram channel already exists for this account");
+            }
         }
 
         Channel channel = new Channel();
         channel.setBusinessId(request.businessId());
-        channel.setProvider(ChannelProvider.WHATSAPP);
+        channel.setProvider(request.provider());
         channel.setDisplayName(request.displayName());
         channel.setPhoneNumber(request.phoneNumber());
         channel.setPhoneNumberId(request.phoneNumberId());
         channel.setWabaId(request.wabaId());
+        channel.setPageId(request.pageId());
+        channel.setInstagramAccountId(request.instagramAccountId());
         channel.setApiKeyEncrypted(EncryptionUtil.encrypt(request.apiKey(), appProperties.encryption().key()));
         channel.setWebhookToken(UUID.randomUUID().toString());
         channel.setStatus(ChannelStatus.ACTIVE);
@@ -56,7 +84,7 @@ public class ChannelServiceImpl implements ChannelService {
         try {
             channel = channelRepository.save(channel);
         } catch (DataIntegrityViolationException e) {
-            throw new DuplicateChannelException("Channel already exists for this phone number");
+            throw new DuplicateChannelException("Channel already exists");
         }
 
         log.info("Channel created: channelId={}, businessId={}", channel.getId(), channel.getBusinessId());

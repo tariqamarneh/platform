@@ -14,6 +14,8 @@ public record ChannelResponse(
     String phoneNumber,
     String phoneNumberId,
     String wabaId,
+    String pageId,
+    String instagramAccountId,
     ChannelStatus status,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
