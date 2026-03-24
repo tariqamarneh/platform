@@ -55,6 +55,7 @@ app:
     channel-adapter-url: ${CHANNEL_ADAPTER_URL:http://localhost:8081}
     ai-engine-url: ${AI_ENGINE_URL:http://localhost:8083}
     auth-url: ${AUTH_SERVICE_URL:http://localhost:8080}
+    service-api-key: ${SERVICE_API_KEY:}
   outbound:
     queue-prefix: outbound
     poll-interval-ms: 200

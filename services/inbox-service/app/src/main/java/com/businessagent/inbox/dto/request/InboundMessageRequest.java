@@ -10,5 +10,6 @@ public record InboundMessageRequest(
     String customerName,
     long timestamp,
     @NotBlank String type,
-    Object payload
+    Object payload,
+    String channelProvider
 ) {}

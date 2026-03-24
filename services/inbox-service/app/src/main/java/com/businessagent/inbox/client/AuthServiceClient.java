@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
-import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -21,11 +20,15 @@ public class AuthServiceClient {
     private final RestClient restClient;
     private final ObjectMapper objectMapper;
 
+    public enum ValidationResult { VALID, INVALID, SERVICE_UNAVAILABLE }
+
+    public record ApiKeyValidation(ValidationResult result, UUID businessId) {}
+
     /**
      * Validates an API key against auth-service.
-     * Returns the business ID if valid, empty if invalid.
+     * Returns VALID with businessId, INVALID, or SERVICE_UNAVAILABLE.
      */
-    public Optional<UUID> validateApiKey(String apiKey) {
+    public ApiKeyValidation validateApiKey(String apiKey) {
         String url = appProperties.services().authUrl() + "/api/v1/keys/verify";
 
         try {
@@ -41,13 +44,13 @@ public class AuthServiceClient {
 
             if (valid) {
                 UUID businessId = UUID.fromString(response.get("businessId").asText());
-                return Optional.of(businessId);
+                return new ApiKeyValidation(ValidationResult.VALID, businessId);
             }
 
-            return Optional.empty();
+            return new ApiKeyValidation(ValidationResult.INVALID, null);
         } catch (Exception e) {
-            log.warn("Failed to validate API key: {}", e.getMessage());
-            return Optional.empty();
+            log.warn("Auth service unavailable: {}", e.getMessage());
+            return new ApiKeyValidation(ValidationResult.SERVICE_UNAVAILABLE, null);
         }
     }
 }

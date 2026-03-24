@@ -59,7 +59,8 @@ class ConversationControllerTest {
         ConversationResponse response = buildConversationResponse();
         when(conversationService.getConversation(CONVERSATION_ID)).thenReturn(response);
 
-        mockMvc.perform(get("/api/v1/conversations/{id}", CONVERSATION_ID))
+        mockMvc.perform(get("/api/v1/conversations/{id}", CONVERSATION_ID)
+                        .requestAttr("businessId", BUSINESS_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(CONVERSATION_ID.toString()))
                 .andExpect(jsonPath("$.businessId").value(BUSINESS_ID.toString()))
@@ -68,11 +69,15 @@ class ConversationControllerTest {
 
     @Test
     void getMessages_returns200() throws Exception {
+        ConversationResponse convResponse = buildConversationResponse();
+        when(conversationService.getConversation(CONVERSATION_ID)).thenReturn(convResponse);
+
         MessageResponse messageResponse = buildMessageResponse();
         Page<MessageResponse> page = new PageImpl<>(List.of(messageResponse), PageRequest.of(0, 50), 1);
         when(conversationService.getConversationMessages(eq(CONVERSATION_ID), any())).thenReturn(page);
 
-        mockMvc.perform(get("/api/v1/conversations/{id}/messages", CONVERSATION_ID))
+        mockMvc.perform(get("/api/v1/conversations/{id}/messages", CONVERSATION_ID)
+                        .requestAttr("businessId", BUSINESS_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(MESSAGE_ID.toString()))
                 .andExpect(jsonPath("$.content[0].direction").value("INBOUND"))

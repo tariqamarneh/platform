@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 
 @RestControllerAdvice
@@ -71,6 +72,6 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponse> buildResponse(HttpStatus status, String message) {
         return ResponseEntity.status(status)
-                .body(new ErrorResponse(status.value(), status.getReasonPhrase(), message, LocalDateTime.now()));
+                .body(new ErrorResponse(status.value(), status.getReasonPhrase(), message, LocalDateTime.now(Clock.systemUTC())));
     }
 }

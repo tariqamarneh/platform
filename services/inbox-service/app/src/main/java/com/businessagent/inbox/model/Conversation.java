@@ -30,4 +30,8 @@ public class Conversation extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "assignee_type", nullable = false)
     private AssigneeType assigneeType;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 }

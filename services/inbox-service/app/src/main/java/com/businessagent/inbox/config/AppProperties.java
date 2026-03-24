@@ -10,7 +10,8 @@ public record AppProperties(
     public record ServicesProperties(
         String channelAdapterUrl,
         String aiEngineUrl,
-        String authUrl
+        String authUrl,
+        String serviceApiKey
     ) {}
 
     public record OutboundProperties(

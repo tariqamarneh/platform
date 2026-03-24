@@ -23,4 +23,8 @@ public class Contact extends BaseEntity {
 
     @Column(name = "channel_provider", nullable = false)
     private String channelProvider;
+
+    @Version
+    @Column(name = "version")
+    private Long version;
 }

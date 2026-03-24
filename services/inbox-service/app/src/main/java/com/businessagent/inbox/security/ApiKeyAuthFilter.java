@@ -35,30 +35,34 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
             return;
         }
 
-        var businessId = authServiceClient.validateApiKey(apiKey);
-        if (businessId.isEmpty()) {
-            log.warn("Invalid API key presented");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setContentType("application/json");
-            response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Invalid API key\"}");
-            return;
+        var validation = authServiceClient.validateApiKey(apiKey);
+        switch (validation.result()) {
+            case VALID -> {
+                var auth = new UsernamePasswordAuthenticationToken(
+                        validation.businessId(), null, List.of(new SimpleGrantedAuthority("ROLE_SERVICE")));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                request.setAttribute("businessId", validation.businessId());
+                filterChain.doFilter(request, response);
+            }
+            case INVALID -> {
+                log.warn("Invalid API key presented");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Invalid API key\"}");
+            }
+            case SERVICE_UNAVAILABLE -> {
+                log.warn("Auth service unavailable during API key validation");
+                response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"status\":503,\"error\":\"Service Unavailable\",\"message\":\"Authentication service unavailable\"}");
+            }
         }
-
-        // Set Spring Security authentication so .authenticated() passes
-        var auth = new UsernamePasswordAuthenticationToken(
-                businessId.get(), null, List.of(new SimpleGrantedAuthority("ROLE_SERVICE")));
-        SecurityContextHolder.getContext().setAuthentication(auth);
-
-        // Store businessId in request attribute for downstream use
-        request.setAttribute("businessId", businessId.get());
-        filterChain.doFilter(request, response);
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        return path.startsWith("/webhook/")
-                || path.equals("/health")
+        return path.equals("/health")
                 || path.equals("/error")
                 || path.startsWith("/actuator/")
                 || path.startsWith("/api-docs")

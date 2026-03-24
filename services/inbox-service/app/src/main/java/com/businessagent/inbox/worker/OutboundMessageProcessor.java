@@ -32,73 +32,80 @@ public class OutboundMessageProcessor {
     private final AppProperties appProperties;
     private final ObjectMapper objectMapper;
 
-    @Transactional
     public void processMessage(String channelId, String messageId) {
+        // 1. Load data (transactional read)
+        OutboundContext ctx = loadContext(messageId);
+        if (ctx == null) return;
+
+        // 2. Send via HTTP (NOT in transaction)
         try {
-            Message message = messageRepository.findById(UUID.fromString(messageId)).orElse(null);
-            if (message == null) {
-                log.warn("Message not found in DB: messageId={}", messageId);
-                return;
-            }
-
-            Conversation conversation = conversationRepository.findById(message.getConversationId()).orElse(null);
-            if (conversation == null) {
-                log.warn("Conversation not found: conversationId={}", message.getConversationId());
-                return;
-            }
-
-            Contact contact = contactRepository.findById(conversation.getContactId()).orElse(null);
-            if (contact == null) {
-                log.warn("Contact not found: contactId={}", conversation.getContactId());
-                return;
-            }
-
-            Object content;
-            try {
-                content = objectMapper.readValue(message.getContent(), Object.class);
-            } catch (Exception e) {
-                content = message.getContent();
-            }
-
-            String apiKey = System.getenv("SERVICE_API_KEY");
+            String apiKey = appProperties.services().serviceApiKey();
             if (apiKey == null || apiKey.isBlank()) {
-                log.error("SERVICE_API_KEY not configured, cannot send outbound messages");
-                message.setStatus(MessageStatus.FAILED);
-                messageRepository.save(message);
+                log.error("service-api-key not configured, cannot send outbound messages");
+                markFailed(messageId);
                 return;
             }
 
-            channelAdapterClient.sendMessage(
-                apiKey,
-                channelId,
-                contact.getExternalId(),
-                message.getContentType().name().toLowerCase(),
-                content
-            );
+            channelAdapterClient.sendMessage(apiKey, channelId, ctx.contactExternalId(),
+                ctx.contentType(), ctx.content());
 
-            message.setStatus(MessageStatus.SENT);
-            messageRepository.save(message);
-            log.info("Outbound message sent: messageId={}, to={}", messageId, contact.getExternalId());
-
+            markSent(messageId);
+            log.info("Outbound message sent: messageId={}, to={}", messageId, ctx.contactExternalId());
         } catch (Exception e) {
-            log.error("Failed to process outbound message: messageId={}, error={}", messageId, e.getMessage());
+            log.error("Failed to send outbound message: messageId={}, error={}", messageId, e.getMessage());
             handleFailure(channelId, messageId);
         }
     }
 
-    private void handleFailure(String channelId, String messageId) {
+    @Transactional(readOnly = true)
+    public OutboundContext loadContext(String messageId) {
         Message message = messageRepository.findById(UUID.fromString(messageId)).orElse(null);
-        if (message == null) return;
+        if (message == null) { log.warn("Message not found: {}", messageId); return null; }
 
-        if (message.getRetryCount() < appProperties.outbound().maxRetries()) {
-            message.setRetryCount(message.getRetryCount() + 1);
-            messageRepository.save(message);
-            queueService.requeue(channelId, messageId);
-            log.info("Re-queued message for retry: messageId={}, retryCount={}", messageId, message.getRetryCount());
-        } else {
-            message.setStatus(MessageStatus.FAILED);
-            messageRepository.save(message);
-            log.warn("Message permanently failed after {} retries: messageId={}", appProperties.outbound().maxRetries(), messageId);
-        }
+        Conversation conversation = conversationRepository.findById(message.getConversationId()).orElse(null);
+        if (conversation == null) { log.warn("Conversation not found: {}", message.getConversationId()); return null; }
+
+        Contact contact = contactRepository.findById(conversation.getContactId()).orElse(null);
+        if (contact == null) { log.warn("Contact not found: {}", conversation.getContactId()); return null; }
+
+        Object content;
+        try { content = objectMapper.readValue(message.getContent(), Object.class); }
+        catch (Exception e) { content = message.getContent(); }
+
+        return new OutboundContext(contact.getExternalId(), message.getContentType().name().toLowerCase(), content);
     }
+
+    @Transactional
+    public void markSent(String messageId) {
+        messageRepository.findById(UUID.fromString(messageId)).ifPresent(msg -> {
+            msg.setStatus(MessageStatus.SENT);
+            messageRepository.save(msg);
+        });
+    }
+
+    @Transactional
+    public void markFailed(String messageId) {
+        messageRepository.findById(UUID.fromString(messageId)).ifPresent(msg -> {
+            msg.setStatus(MessageStatus.FAILED);
+            messageRepository.save(msg);
+        });
+    }
+
+    @Transactional
+    public void handleFailure(String channelId, String messageId) {
+        messageRepository.findById(UUID.fromString(messageId)).ifPresent(msg -> {
+            if (msg.getRetryCount() < appProperties.outbound().maxRetries()) {
+                msg.setRetryCount(msg.getRetryCount() + 1);
+                messageRepository.save(msg);
+                queueService.requeue(channelId, messageId);
+                log.info("Re-queued: messageId={}, retry={}", messageId, msg.getRetryCount());
+            } else {
+                msg.setStatus(MessageStatus.FAILED);
+                messageRepository.save(msg);
+                log.warn("Permanently failed after {} retries: messageId={}", appProperties.outbound().maxRetries(), messageId);
+            }
+        });
+    }
+
+    public record OutboundContext(String contactExternalId, String contentType, Object content) {}
 }
