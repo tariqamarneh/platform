@@ -33,6 +33,12 @@ public class Channel extends BaseEntity {
     @Column(name = "waba_id")
     private String wabaId;
 
+    @Column(name = "page_id")
+    private String pageId;
+
+    @Column(name = "instagram_account_id")
+    private String instagramAccountId;
+
     @Column(name = "api_key_encrypted", nullable = false)
     private String apiKeyEncrypted;
 

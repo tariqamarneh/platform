@@ -12,6 +12,9 @@ import java.util.UUID;
 @Repository
 public interface ChannelRepository extends JpaRepository<Channel, UUID> {
     boolean existsByBusinessIdAndPhoneNumberId(UUID businessId, String phoneNumberId);
+    boolean existsByBusinessIdAndInstagramAccountId(UUID businessId, String instagramAccountId);
     List<Channel> findByBusinessIdAndStatus(UUID businessId, ChannelStatus status);
     Optional<Channel> findByWebhookToken(String webhookToken);
+    Optional<Channel> findByPageId(String pageId);
+    Optional<Channel> findByInstagramAccountId(String instagramAccountId);
 }

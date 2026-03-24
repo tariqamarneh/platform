@@ -59,6 +59,7 @@ class ChannelControllerTest {
         String body = """
                 {
                     "businessId": "%s",
+                    "provider": "WHATSAPP",
                     "displayName": "My Channel",
                     "phoneNumber": "+5511999990000",
                     "phoneNumberId": "phone-id-1",
@@ -123,6 +124,7 @@ class ChannelControllerTest {
         return new ChannelResponse(
                 CHANNEL_ID, BUSINESS_ID, ChannelProvider.WHATSAPP,
                 "My Channel", "+5511999990000", "phone-id-1", "waba-1",
+                null, null,
                 ChannelStatus.ACTIVE, LocalDateTime.now(), LocalDateTime.now());
     }
 
@@ -130,6 +132,7 @@ class ChannelControllerTest {
         return new ChannelCreatedResponse(
                 CHANNEL_ID, BUSINESS_ID, ChannelProvider.WHATSAPP,
                 "My Channel", "+5511999990000", "phone-id-1", "waba-1",
+                null, null,
                 "webhook-token", ChannelStatus.ACTIVE, LocalDateTime.now());
     }
 }

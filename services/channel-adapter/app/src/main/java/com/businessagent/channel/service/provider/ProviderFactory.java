@@ -8,10 +8,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProviderFactory {
     private final WhatsAppCloudProvider whatsAppCloudProvider;
+    private final InstagramProvider instagramProvider;
 
     public MessageProvider getProvider(Channel channel) {
         return switch (channel.getProvider()) {
             case WHATSAPP -> whatsAppCloudProvider;
+            case INSTAGRAM -> instagramProvider;
         };
     }
 }

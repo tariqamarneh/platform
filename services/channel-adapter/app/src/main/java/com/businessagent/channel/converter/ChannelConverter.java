@@ -17,6 +17,8 @@ public class ChannelConverter {
                 channel.getPhoneNumber(),
                 channel.getPhoneNumberId(),
                 channel.getWabaId(),
+                channel.getPageId(),
+                channel.getInstagramAccountId(),
                 channel.getStatus(),
                 channel.getCreatedAt(),
                 channel.getUpdatedAt()
@@ -32,6 +34,8 @@ public class ChannelConverter {
                 channel.getPhoneNumber(),
                 channel.getPhoneNumberId(),
                 channel.getWabaId(),
+                channel.getPageId(),
+                channel.getInstagramAccountId(),
                 channel.getWebhookToken(),
                 channel.getStatus(),
                 channel.getCreatedAt()

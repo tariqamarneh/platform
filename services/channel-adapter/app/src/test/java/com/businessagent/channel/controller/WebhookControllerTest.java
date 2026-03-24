@@ -38,11 +38,11 @@ class WebhookControllerTest {
     private ApiKeyAuthFilter apiKeyAuthFilter;
 
     @Test
-    void verifyWebhook_shouldReturn200WithChallenge() throws Exception {
+    void verifyWhatsAppWebhook_shouldReturn200WithChallenge() throws Exception {
         when(webhookService.verifyWebhook("token-abc", "subscribe", "challenge-123", "verify-token"))
                 .thenReturn("challenge-123");
 
-        mockMvc.perform(get("/webhook/{token}", "token-abc")
+        mockMvc.perform(get("/webhook/whatsapp/{token}", "token-abc")
                         .param("hub.mode", "subscribe")
                         .param("hub.challenge", "challenge-123")
                         .param("hub.verify_token", "verify-token"))
@@ -51,9 +51,9 @@ class WebhookControllerTest {
     }
 
     @Test
-    void receiveWebhook_shouldReturn200() throws Exception {
+    void receiveWhatsAppWebhook_shouldReturn200() throws Exception {
         doNothing().when(webhookSignatureValidator).validate(any(), any());
-        doNothing().when(webhookService).processWebhook(any(), any());
+        doNothing().when(webhookService).processWhatsAppWebhook(any(), any());
 
         String body = """
                 {
@@ -62,7 +62,39 @@ class WebhookControllerTest {
                 }
                 """;
 
-        mockMvc.perform(post("/webhook/{token}", "token-abc")
+        mockMvc.perform(post("/webhook/whatsapp/{token}", "token-abc")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-Hub-Signature-256", "sha256=abc123")
+                        .content(body))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void verifyInstagramWebhook_shouldReturn200WithChallenge() throws Exception {
+        when(webhookService.verifyWebhook("token-ig", "subscribe", "ig-challenge", "verify-token"))
+                .thenReturn("ig-challenge");
+
+        mockMvc.perform(get("/webhook/instagram/{token}", "token-ig")
+                        .param("hub.mode", "subscribe")
+                        .param("hub.challenge", "ig-challenge")
+                        .param("hub.verify_token", "verify-token"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("ig-challenge"));
+    }
+
+    @Test
+    void receiveInstagramWebhook_shouldReturn200() throws Exception {
+        doNothing().when(webhookSignatureValidator).validate(any(), any());
+        doNothing().when(webhookService).processInstagramWebhook(any(), any());
+
+        String body = """
+                {
+                    "object": "instagram",
+                    "entry": []
+                }
+                """;
+
+        mockMvc.perform(post("/webhook/instagram/{token}", "token-ig")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Hub-Signature-256", "sha256=abc123")
                         .content(body))

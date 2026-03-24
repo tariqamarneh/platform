@@ -4,6 +4,7 @@ import com.businessagent.channel.config.AppProperties;
 import com.businessagent.channel.converter.ChannelConverter;
 import com.businessagent.channel.dto.request.CreateChannelRequest;
 import com.businessagent.channel.dto.request.UpdateChannelRequest;
+import com.businessagent.channel.dto.response.ChannelCreatedResponse;
 import com.businessagent.channel.dto.response.ChannelResponse;
 import com.businessagent.channel.exception.ChannelNotFoundException;
 import com.businessagent.channel.exception.DuplicateChannelException;
@@ -48,7 +49,8 @@ class ChannelServiceImplTest {
     @Test
     void createChannel_happyPath_shouldSaveWithEncryptedKeyAndGenerateWebhookToken() {
         CreateChannelRequest request = new CreateChannelRequest(
-                BUSINESS_ID, "My Channel", "+5511999990000", "phone-id-1", "waba-1", "api-key-123");
+                BUSINESS_ID, ChannelProvider.WHATSAPP, "My Channel", "api-key-123",
+                "+5511999990000", "phone-id-1", "waba-1", null, null);
 
         when(channelRepository.existsByBusinessIdAndPhoneNumberId(BUSINESS_ID, "phone-id-1")).thenReturn(false);
         when(appProperties.encryption()).thenReturn(new AppProperties.EncryptionProperties("test-encryption-key-32-bytes-ok!"));
@@ -76,7 +78,8 @@ class ChannelServiceImplTest {
     @Test
     void createChannel_duplicatePhone_shouldThrowDuplicateChannelException() {
         CreateChannelRequest request = new CreateChannelRequest(
-                BUSINESS_ID, "My Channel", "+5511999990000", "phone-id-1", "waba-1", "api-key-123");
+                BUSINESS_ID, ChannelProvider.WHATSAPP, "My Channel", "api-key-123",
+                "+5511999990000", "phone-id-1", "waba-1", null, null);
 
         when(channelRepository.existsByBusinessIdAndPhoneNumberId(BUSINESS_ID, "phone-id-1")).thenReturn(true);
 
@@ -145,6 +148,41 @@ class ChannelServiceImplTest {
         verify(channelRepository).save(channel);
     }
 
+    @Test
+    void createInstagramChannel_happyPath_shouldSaveWithInstagramFields() {
+        CreateChannelRequest request = new CreateChannelRequest(
+            BUSINESS_ID, ChannelProvider.INSTAGRAM, "My Instagram", "ig-token",
+            null, null, null, "page-123", "ig-account-456");
+
+        when(channelRepository.existsByBusinessIdAndInstagramAccountId(BUSINESS_ID, "ig-account-456")).thenReturn(false);
+        when(appProperties.encryption()).thenReturn(new AppProperties.EncryptionProperties("test-encryption-key-32-bytes-ok!"));
+        when(channelRepository.save(any(Channel.class))).thenAnswer(inv -> {
+            Channel ch = inv.getArgument(0);
+            ch.setId(CHANNEL_ID);
+            return ch;
+        });
+        when(channelConverter.toCreatedResponse(any(Channel.class))).thenReturn(buildInstagramCreatedResponse());
+
+        var response = channelService.createChannel(request);
+
+        assertNotNull(response);
+        ArgumentCaptor<Channel> captor = ArgumentCaptor.forClass(Channel.class);
+        verify(channelRepository).save(captor.capture());
+        Channel saved = captor.getValue();
+        assertEquals(ChannelProvider.INSTAGRAM, saved.getProvider());
+        assertEquals("page-123", saved.getPageId());
+        assertEquals("ig-account-456", saved.getInstagramAccountId());
+    }
+
+    @Test
+    void createInstagramChannel_missingPageId_shouldThrow() {
+        CreateChannelRequest request = new CreateChannelRequest(
+            BUSINESS_ID, ChannelProvider.INSTAGRAM, "My Instagram", "ig-token",
+            null, null, null, null, "ig-account-456");
+
+        assertThrows(IllegalArgumentException.class, () -> channelService.createChannel(request));
+    }
+
     private Channel buildChannel() {
         Channel channel = new Channel();
         channel.setId(CHANNEL_ID);
@@ -164,13 +202,23 @@ class ChannelServiceImplTest {
         return new ChannelResponse(
                 CHANNEL_ID, BUSINESS_ID, ChannelProvider.WHATSAPP,
                 "My Channel", "+5511999990000", "phone-id-1", "waba-1",
+                null, null,
                 ChannelStatus.ACTIVE, LocalDateTime.now(), LocalDateTime.now());
     }
 
-    private com.businessagent.channel.dto.response.ChannelCreatedResponse buildChannelCreatedResponse() {
-        return new com.businessagent.channel.dto.response.ChannelCreatedResponse(
+    private ChannelCreatedResponse buildChannelCreatedResponse() {
+        return new ChannelCreatedResponse(
                 CHANNEL_ID, BUSINESS_ID, ChannelProvider.WHATSAPP,
                 "My Channel", "+5511999990000", "phone-id-1", "waba-1",
+                null, null,
+                "webhook-token", ChannelStatus.ACTIVE, LocalDateTime.now());
+    }
+
+    private ChannelCreatedResponse buildInstagramCreatedResponse() {
+        return new ChannelCreatedResponse(
+                CHANNEL_ID, BUSINESS_ID, ChannelProvider.INSTAGRAM,
+                "My Instagram", null, null, null,
+                "page-123", "ig-account-456",
                 "webhook-token", ChannelStatus.ACTIVE, LocalDateTime.now());
     }
 }
