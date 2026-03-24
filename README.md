@@ -15,35 +15,42 @@ A SaaS platform that replaces human customer service teams with AI-powered Whats
 Customer (WhatsApp) → Meta API → Platform → AI Response → Meta API → Customer
 ```
 
-The platform is a monorepo with three independently deployable microservices:
+The platform is a monorepo with independently deployable microservices:
 
 | Service | Tech | Port | Status | Description |
 |---|---|---|---|---|
 | [auth-service](services/auth-service/) | Java 21, Spring Boot 3.4 | 8080 | Implemented | Authentication, user management, API key management |
-| [ai-engine](services/ai-engine/) | Python 3.13, FastAPI | 8081 | Scaffolded | AI/ML processing, WhatsApp message handling |
-| [web](services/web/) | Next.js 16, React 19 | 3000 | Landing + Auth | Landing page, login/register, JWT auth via HTTP-only cookies |
+| [channel-adapter](services/channel-adapter/) | Java 21, Spring Boot 3.4 | 8081 | Implemented | WhatsApp webhook ingestion, message sending, channel management |
+| [ai-engine](services/ai-engine/) | Python 3.13, FastAPI | 8083 | Scaffolded | AI/ML processing |
+| [web](services/web/) | Next.js 16, React 19 | 3000 | Landing + Auth | Landing page, login/register, admin panel |
 
 ### Service communication
 
 ```
-web (dashboard) ──JWT──→ auth-service ←──API Key──── ai-engine
-                                                        ↑
-                                                   Meta Webhook
+Customer (WhatsApp) → Meta API → channel-adapter → inbox-service → ai-engine
+                                       ↑                              ↓
+                                  Meta API  ←─────── channel-adapter ←┘
+                                                          ↕
+web (dashboard) ──JWT──→ auth-service ←──API Key──── channel-adapter
 ```
 
-- **web → auth-service**: JWT-authenticated API calls for login, registration, key management
-- **ai-engine → auth-service**: API key verification via `POST /api/v1/keys/verify` with `X-API-Key` header
-- Each service runs independently and communicates over HTTP
+- **Meta → channel-adapter**: WhatsApp webhooks (inbound messages)
+- **channel-adapter → inbox-service**: Normalized messages forwarded via HTTP
+- **inbox-service → ai-engine**: AI response generation
+- **inbox-service → channel-adapter**: Send replies back via WhatsApp
+- **channel-adapter → auth-service**: API key validation
+- **web → auth-service**: JWT authentication for dashboard
 
 ## Quick Start
 
 ### Run everything locally
 
 ```bash
-# Start all services (Postgres, Redis, auth-service, web)
+# Start all services
 docker compose up --build
 
-# Web app:      http://localhost:3000
+# Web app:          http://localhost:3000
+# Channel adapter:  http://localhost:8081
 # Auth service: http://localhost:8080
 # Swagger UI:   http://localhost:8080/swagger-ui/index.html
 ```
