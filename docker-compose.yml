@@ -70,6 +70,30 @@ services:
       auth-service:
         condition: service_started
 
+  inbox-service:
+    build:
+      context: ./services/inbox-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/inbox
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      CHANNEL_ADAPTER_URL: http://channel-adapter:8081
+      AI_ENGINE_URL: http://ai-engine:8083
+      AUTH_SERVICE_URL: http://auth-service:8080
+      SERVICE_API_KEY: ${SERVICE_API_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+
   web:
     build:
       context: ./services/web
