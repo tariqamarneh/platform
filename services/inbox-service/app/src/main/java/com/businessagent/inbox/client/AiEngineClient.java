@@ -18,7 +18,8 @@ public class AiEngineClient {
     private final RestClient restClient;
 
     public void notifyNewMessage(String conversationId, String businessId, String messageId,
-                                  String contactId, String contactName, String message, String messageType) {
+                                  String contactId, String contactName, String message, String messageType,
+                                  String apiKey) {
         String url = appProperties.services().aiEngineUrl() + "/api/v1/process";
 
         Map<String, Object> body = Map.of(
@@ -28,7 +29,8 @@ public class AiEngineClient {
             "contactId", contactId,
             "contactName", contactName != null ? contactName : "",
             "message", message,
-            "messageType", messageType
+            "messageType", messageType,
+            "apiKey", apiKey != null ? apiKey : ""
         );
 
         log.info("Notifying ai-engine: conversationId={}, businessId={}", conversationId, businessId);

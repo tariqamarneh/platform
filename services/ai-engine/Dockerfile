@@ -21,10 +21,10 @@ COPY --from=build /app/.venv ./.venv
 COPY --from=build /app/ai_engine ./ai_engine
 
 ENV PATH="/app/.venv/bin:$PATH"
-ENV PORT=8080
+ENV PORT=8083
 
 USER appuser
 
-EXPOSE 8080
+EXPOSE 8083
 
 CMD ["python", "-m", "ai_engine.main"]

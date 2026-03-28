@@ -22,7 +22,7 @@ The platform is a monorepo with independently deployable microservices:
 | [auth-service](services/auth-service/) | Java 21, Spring Boot 3.4 | 8080 | Implemented | Authentication, user management, API key management |
 | [channel-adapter](services/channel-adapter/) | Java 21, Spring Boot 3.4 | 8081 | Implemented | WhatsApp + Instagram webhook ingestion, message sending, channel management |
 | [inbox-service](services/inbox-service/) | Java 21, Spring Boot 3.4 | 8082 | Implemented | Conversation orchestration, message lifecycle, Redis outbound queue |
-| [ai-engine](services/ai-engine/) | Python 3.13, FastAPI | 8083 | Scaffolded | AI/ML processing |
+| [ai-engine](services/ai-engine/) | Python 3.13, FastAPI | 8083 | Mock mode | AI processing (mock responses, ready for Claude/OpenAI integration) |
 | [web](services/web/) | Next.js 16, React 19 | 3000 | Landing + Auth | Landing page, login/register, admin panel |
 
 ### Service communication
