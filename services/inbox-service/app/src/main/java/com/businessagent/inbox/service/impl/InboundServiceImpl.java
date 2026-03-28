@@ -62,7 +62,8 @@ public class InboundServiceImpl implements InboundService {
                     dbResult.getContactId().toString(),
                     dbResult.getContactName(),
                     messageText,
-                    request.type()
+                    request.type(),
+                    apiKey
                 );
             } catch (Exception e) {
                 log.warn("Failed to notify AI engine: {}", e.getMessage());

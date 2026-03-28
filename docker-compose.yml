@@ -94,6 +94,18 @@ services:
       auth-service:
         condition: service_started
 
+  ai-engine:
+    build:
+      context: ./services/ai-engine
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    environment:
+      PORT: 8083
+      INBOX_SERVICE_URL: http://inbox-service:8082
+    depends_on:
+      - inbox-service
+
   web:
     build:
       context: ./services/web
